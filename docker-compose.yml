@@ -1,0 +1,20 @@
+services:
+  lighthouse-server:
+    build: .
+    ports:
+      - "9001:9001"
+    volumes:
+      - lhci_data:/data
+    environment:
+      - LHCI_NO_WARNINGS=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9001/v1/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  lhci_data:
+    driver: local
