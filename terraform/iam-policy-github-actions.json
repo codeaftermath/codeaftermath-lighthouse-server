@@ -279,29 +279,6 @@
         "s3:GetReplicationConfiguration"
       ],
       "Resource": "*"
-    },
-    {
-      "Sid": "DynamoDBStateLocking",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:CreateTable",
-        "dynamodb:DeleteTable",
-        "dynamodb:DescribeTable",
-        "dynamodb:UpdateTable",
-        "dynamodb:ListTables",
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:UpdateItem",
-        "dynamodb:Query",
-        "dynamodb:Scan",
-        "dynamodb:TagResource",
-        "dynamodb:UntagResource",
-        "dynamodb:ListTagsOfResource",
-        "dynamodb:DescribeContinuousBackups",
-        "dynamodb:DescribeTimeToLive"
-      ],
-      "Resource": "*"
     }
   ]
 }

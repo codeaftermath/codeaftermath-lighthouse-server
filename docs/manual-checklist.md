@@ -39,8 +39,7 @@ fastest way to get everything working.
 | `AmazonSSMFullAccess` | SSM Parameter Store (admin API key) |
 | `IAMFullAccess` | IAM roles and policies created for ECS execution/task roles |
 | `CloudWatchLogsFullAccess` | CloudWatch log group for ECS container output |
-| `AmazonS3FullAccess` | S3 bucket for Terraform remote state |
-| `AmazonDynamoDBFullAccess` | DynamoDB table for Terraform state locking |
+| `AmazonS3FullAccess` | S3 bucket for Terraform remote state and state locking |
 
 > ⚠️ These managed policies are intentionally broad. They are fine for a
 > personal or team project but should be replaced with a least-privilege
@@ -94,9 +93,9 @@ Or attach it in the IAM console:
 
 ### 1.2 — Bootstrap the Terraform state backend (run locally, once)
 
-The S3 bucket and DynamoDB table that hold Terraform remote state must exist
-before the main configuration can be initialised. Run these commands from your
-local machine with the IAM credentials above configured in your shell:
+The S3 bucket that holds Terraform remote state must exist before the main
+configuration can be initialised. Run these commands from your local machine
+with the IAM credentials above configured in your shell:
 
 ```bash
 # Configure AWS CLI with the credentials from step 1.1
@@ -108,11 +107,10 @@ terraform init
 terraform apply   # type 'yes' when prompted
 ```
 
-Expected result: two new resources in AWS —
+Expected result: one new resource in AWS —
 - S3 bucket `codeaftermath-terraform-state` (versioned, AES-256 encrypted)
-- DynamoDB table `codeaftermath-terraform-locks`
 
-> **Only do this once.** The bucket and table have `prevent_destroy = true`
+> **Only do this once.** The bucket has `prevent_destroy = true`
 > and should never be re-created.
 
 ### 1.3 — Generate the LHCI admin API key

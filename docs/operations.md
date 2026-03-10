@@ -341,8 +341,8 @@ cd terraform
 terraform destroy -var="lhci_admin_api_key=<key>"
 ```
 
-The bootstrap resources (S3 state bucket + DynamoDB lock table) are protected
-by `lifecycle { prevent_destroy = true }`. To remove them, first remove that
+The bootstrap resource (S3 state bucket) is protected
+by `lifecycle { prevent_destroy = true }`. To remove it, first remove that
 lifecycle block in `terraform/bootstrap/main.tf`, then:
 
 ```bash

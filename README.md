@@ -101,7 +101,7 @@ GitHub Actions (push to main)
 │   ├── iam-policy-github-actions.json  # Least-privilege policy for the CI/CD IAM user
 │   ├── terraform.tfvars.example      # Example variable values (copy + fill in)
 │   └── bootstrap/
-│       └── main.tf                   # One-time S3 + DynamoDB backend setup
+│       └── main.tf                   # One-time S3 backend setup
 └── docs/
     ├── manual-checklist.md           # Every manual step required before go-live
     ├── onboarding.md                 # Connect a new project to the server
@@ -114,12 +114,12 @@ GitHub Actions (push to main)
 
 | Tool | Version |
 |---|---|
-| [Terraform](https://developer.hashicorp.com/terraform/install) | ≥ 1.5 |
+| [Terraform](https://developer.hashicorp.com/terraform/install) | ≥ 1.10 |
 | [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) | v2 |
 | [Docker](https://docs.docker.com/get-docker/) | any recent |
 
 An AWS IAM user with permissions to manage ECS, ECR, VPC, EFS, ALB, IAM,
-SSM, CloudWatch Logs, S3, and DynamoDB. See
+SSM, CloudWatch Logs, and S3. See
 [`terraform/iam-policy-github-actions.json`](terraform/iam-policy-github-actions.json)
 for a ready-to-use least-privilege policy, or the
 [manual checklist §1.1](docs/manual-checklist.md#11--aws-account-and-iam-credentials)
@@ -131,8 +131,9 @@ for the full setup options.
 
 ### 1 — Bootstrap the Terraform state backend
 
-The main Terraform configuration stores its state in an S3 bucket with
-DynamoDB state-locking. Run the bootstrap **once** before the main config:
+The main Terraform configuration stores its state in an S3 bucket using
+S3-native state locking (`use_lockfile = true`). Run the bootstrap **once**
+before the main config:
 
 ```bash
 cd terraform/bootstrap
@@ -143,7 +144,6 @@ terraform apply
 This creates:
 
 - `codeaftermath-terraform-state` S3 bucket (versioned, encrypted)
-- `codeaftermath-terraform-locks` DynamoDB table
 
 ### 2 — Configure GitHub repository secrets
 
