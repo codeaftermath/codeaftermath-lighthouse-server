@@ -15,20 +15,82 @@ These steps are performed once, before the server is deployed for the first time
 ### 1.1 — AWS account and IAM credentials
 
 - [ ] Log in to (or create) an AWS account.
-- [ ] Create an IAM user or role that the GitHub Actions workflows will use.
-  The identity needs the following managed and inline permissions:
-  - `AmazonEC2FullAccess` (VPC, subnets, security groups, IGW)
-  - `AmazonECS_FullAccess`
-  - `AmazonEC2ContainerRegistryFullAccess`
-  - `ElasticFileSystem_FullAccess`
-  - `ElasticLoadBalancingFullAccess`
-  - `IAMFullAccess`
-  - `AmazonSSMFullAccess`
-  - `CloudWatchLogsFullAccess`
-  - `AmazonS3FullAccess` (for the Terraform state bucket)
-  - `AmazonDynamoDBFullAccess` (for the Terraform state lock table)
+- [ ] Create a dedicated IAM user (e.g. `github-actions-lighthouse`) that the
+  GitHub Actions workflows will use to run Terraform and push Docker images.
+
+The IAM user needs permissions across ten AWS services. Two options are shown
+below — choose the one that fits your security requirements.
+
+---
+
+#### Option A — AWS managed policies (quick start)
+
+Attach the following ten AWS-managed policies directly to the IAM user. Each
+policy is maintained by AWS, grants full access to its service, and is the
+fastest way to get everything working.
+
+| Policy name (attach in IAM console) | Services covered |
+|---|---|
+| `AmazonEC2FullAccess` | VPC, subnets, security groups, internet gateway, route tables |
+| `ElasticLoadBalancingFullAccess` | Application Load Balancer, target groups, listeners |
+| `AmazonEC2ContainerRegistryFullAccess` | ECR — create repo, push/pull images |
+| `AmazonECS_FullAccess` | ECS cluster, task definitions, service |
+| `AmazonElasticFileSystemFullAccess` | EFS file system, mount targets, access points |
+| `AmazonSSMFullAccess` | SSM Parameter Store (admin API key) |
+| `IAMFullAccess` | IAM roles and policies created for ECS execution/task roles |
+| `CloudWatchLogsFullAccess` | CloudWatch log group for ECS container output |
+| `AmazonS3FullAccess` | S3 bucket for Terraform remote state |
+| `AmazonDynamoDBFullAccess` | DynamoDB table for Terraform state locking |
+
+> ⚠️ These managed policies are intentionally broad. They are fine for a
+> personal or team project but should be replaced with a least-privilege
+> policy (Option B) before exposing the infrastructure to untrusted code.
+
+---
+
+#### Option B — Least-privilege inline policy (recommended for production)
+
+The file [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json)
+contains a single JSON policy with exactly the IAM actions required to run
+`terraform apply` (bootstrap + main) and push Docker images to ECR. No
+service has more access than it needs.
+
+**To attach it:**
+
+```bash
+# 1. Create the policy in your AWS account
+aws iam create-policy \
+  --policy-name codeaftermath-lighthouse-github-actions \
+  --policy-document file://terraform/iam-policy-github-actions.json \
+  --region us-east-1
+
+# 2. Attach it to the IAM user (replace <account-id>)
+aws iam attach-user-policy \
+  --user-name github-actions-lighthouse \
+  --policy-arn arn:aws:iam::<account-id>:policy/codeaftermath-lighthouse-github-actions
+```
+
+Or attach it in the IAM console:
+1. Go to **IAM → Users → github-actions-lighthouse → Add permissions**.
+2. Choose **Attach policies directly → Create policy**.
+3. Switch to the **JSON** tab, paste the contents of
+   `terraform/iam-policy-github-actions.json`, and save.
+4. Attach the new policy to the user.
+
+**Key security decisions made in the policy:**
+
+| Decision | Reason |
+|---|---|
+| `iam:PassRole` is restricted to `ecs-tasks.amazonaws.com` via a `Condition` | Prevents the key from being used to escalate privileges via other services |
+| All other IAM actions are scoped to create/manage only roles and role policies | Not full `IAMFullAccess` — cannot create users, groups, or access keys |
+| `ec2:Describe*` and similar read-only actions require `"Resource": "*"` | AWS does not support resource-level restrictions on Describe actions |
+
+---
+
+- [ ] IAM user `github-actions-lighthouse` created
+- [ ] Permissions attached (Option A managed policies **or** Option B inline policy)
 - [ ] Generate an **Access Key ID** and **Secret Access Key** for that user.
-  Store them somewhere safe — you will add them to GitHub in step 1.3.
+  Store them somewhere safe — you will add them to GitHub in step 1.4.
 
 ### 1.2 — Bootstrap the Terraform state backend (run locally, once)
 
@@ -352,11 +414,23 @@ To avoid unexpected charges, create a billing alarm:
 
 - [ ] AWS billing budget / alert configured
 
-### 3.4 — Restrict IAM permissions to least-privilege
+### 3.4 — Tighten IAM permissions (if using Option A managed policies)
 
-The IAM permissions listed in step 1.1 use broad managed policies for
-convenience. For a hardened production setup, replace them with a custom
-inline policy scoped to only the specific resources created by Terraform
-(using resource ARN conditions).
+If you set up the IAM user with the ten broad managed policies from step 1.1
+Option A, replace them with the least-privilege inline policy once everything
+is working:
 
-- [ ] IAM permissions tightened to least-privilege inline policy
+```bash
+# Detach the broad managed policies one by one, then attach the scoped policy:
+aws iam create-policy \
+  --policy-name codeaftermath-lighthouse-github-actions \
+  --policy-document file://terraform/iam-policy-github-actions.json
+
+aws iam attach-user-policy \
+  --user-name github-actions-lighthouse \
+  --policy-arn arn:aws:iam::<account-id>:policy/codeaftermath-lighthouse-github-actions
+```
+
+See [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json) for the full policy.
+
+- [ ] Switched from managed policies to the least-privilege inline policy

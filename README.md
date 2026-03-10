@@ -98,10 +98,12 @@ GitHub Actions (push to main)
 │   ├── iam.tf                        # ECS execution + task IAM roles
 │   ├── alb.tf                        # ALB, target group, HTTP listener
 │   ├── ecs.tf                        # ECS cluster, task definition, service
+│   ├── iam-policy-github-actions.json  # Least-privilege policy for the CI/CD IAM user
 │   ├── terraform.tfvars.example      # Example variable values (copy + fill in)
 │   └── bootstrap/
 │       └── main.tf                   # One-time S3 + DynamoDB backend setup
 └── docs/
+    ├── manual-checklist.md           # Every manual step required before go-live
     ├── onboarding.md                 # Connect a new project to the server
     └── operations.md                 # Day-to-day server management
 ```
@@ -116,8 +118,12 @@ GitHub Actions (push to main)
 | [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) | v2 |
 | [Docker](https://docs.docker.com/get-docker/) | any recent |
 
-An AWS IAM user or role with permissions to manage: ECS, ECR, VPC, EFS, ALB,
-IAM, SSM, CloudWatch, S3, DynamoDB.
+An AWS IAM user with permissions to manage ECS, ECR, VPC, EFS, ALB, IAM,
+SSM, CloudWatch Logs, S3, and DynamoDB. See
+[`terraform/iam-policy-github-actions.json`](terraform/iam-policy-github-actions.json)
+for a ready-to-use least-privilege policy, or the
+[manual checklist §1.1](docs/manual-checklist.md#11--aws-account-and-iam-credentials)
+for the full setup options.
 
 ---
 
