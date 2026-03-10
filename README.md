@@ -7,8 +7,15 @@ automated via **GitHub Actions**.
 
 ---
 
+## Getting Started
+
+> 🚀 **New here?** See **[docs/manual-checklist.md](docs/manual-checklist.md)** for the complete list of one-time setup tasks and per-project onboarding steps you need to do manually before the server goes live.
+
+---
+
 ## Table of Contents
 
+- [Getting Started](#getting-started)
 - [Architecture](#architecture)
 - [Repository Layout](#repository-layout)
 - [Prerequisites](#prerequisites)
@@ -268,6 +275,7 @@ guide, including:
 
 ## Further Reading
 
+- [docs/manual-checklist.md](docs/manual-checklist.md) — **Complete checklist of every task you must do manually**
 - [docs/operations.md](docs/operations.md) — Server management, log access,
   key rotation, scaling, and backup procedures
 - [Lighthouse CI documentation](https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/getting-started.md)
