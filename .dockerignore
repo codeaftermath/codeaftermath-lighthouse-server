@@ -1,0 +1,6 @@
+.git
+.github
+*.md
+terraform
+docker-compose.yml
+.gitignore
