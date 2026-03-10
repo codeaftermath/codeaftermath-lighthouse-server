@@ -50,10 +50,13 @@ resource "aws_ecs_task_definition" "lighthouse" {
         {
           name  = "LHCI_NO_WARNINGS"
           value = "1"
-        },
+        }
+      ]
+
+      secrets = [
         {
-          name  = "LHCI_ADMIN_API_KEY"
-          value = var.lhci_admin_api_key
+          name      = "LHCI_ADMIN_API_KEY"
+          valueFrom = aws_ssm_parameter.lhci_admin_api_key.arn
         }
       ]
 

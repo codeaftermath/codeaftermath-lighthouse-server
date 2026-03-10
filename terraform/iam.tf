@@ -27,6 +27,20 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_iam_policy_document" "ecs_exec_ssm" {
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:GetParameters"]
+    resources = [aws_ssm_parameter.lhci_admin_api_key.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_exec_ssm" {
+  name   = "${var.project_name}-ecs-exec-ssm"
+  role   = aws_iam_role.ecs_task_execution.id
+  policy = data.aws_iam_policy_document.ecs_exec_ssm.json
+}
+
 # ── ECS Task Role ──────────────────────────────────────────────────────────────
 # Used by the application code running inside the container.
 
