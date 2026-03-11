@@ -29,7 +29,7 @@ resource "aws_lb_target_group" "lighthouse" {
 
   health_check {
     enabled             = true
-    path                = "/v1/version"
+    path                = "/version"
     protocol            = "HTTP"
     healthy_threshold   = 2
     unhealthy_threshold = 3

@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "lighthouse" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -qO- http://localhost:9001/v1/version || exit 1"]
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:9001/version || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

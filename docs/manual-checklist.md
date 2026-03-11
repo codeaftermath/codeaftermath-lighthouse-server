@@ -189,7 +189,7 @@ terraform output lighthouse_server_url
 ### 1.8 — Verify the server is running
 
 ```bash
-curl http://<alb-dns-name>/v1/version
+curl http://<alb-dns-name>/version
 # {"version":"0.13.x"}
 ```
 

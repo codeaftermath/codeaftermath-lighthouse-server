@@ -384,16 +384,16 @@ The dashboard shows:
 SERVER="http://<alb-dns-name>"
 
 # Server version
-curl "$SERVER/v1/version"
+curl "$SERVER/version"
 
 # List all projects
-curl "$SERVER/v1/projects"
+curl "$SERVER/projects"
 
 # List builds for a project
-curl "$SERVER/v1/projects/<project-id>/builds"
+curl "$SERVER/projects/<project-id>/builds"
 
 # Get a specific build's runs
-curl "$SERVER/v1/projects/<project-id>/builds/<build-id>/runs"
+curl "$SERVER/projects/<project-id>/builds/<build-id>/runs"
 ```
 
 ---
@@ -404,7 +404,7 @@ curl "$SERVER/v1/projects/<project-id>/builds/<build-id>/runs"
 
 - Confirm the ALB DNS name is correct and the ECS task is running.
 - Check that port 80 is open in the ALB security group.
-- Verify with: `curl -v http://<alb-dns-name>/v1/version`
+- Verify with: `curl -v http://<alb-dns-name>/version`
 
 ### Build token rejected (401)
 
