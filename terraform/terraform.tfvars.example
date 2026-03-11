@@ -11,3 +11,8 @@ project_name = "codeaftermath-lighthouse"
 
 # Admin API key for the LHCI server (20+ character string).
 lhci_admin_api_key = "REPLACE_WITH_STRONG_SECRET"
+
+# Set to false to use only regular on-demand FARGATE (e.g., for a production
+# environment where interruptions are unacceptable). Default: true (FARGATE_SPOT
+# preferred with FARGATE as fallback — ~70% cheaper for a CI tool).
+# use_spot = true

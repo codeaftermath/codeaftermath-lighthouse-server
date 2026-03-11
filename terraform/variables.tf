@@ -39,3 +39,9 @@ variable "lhci_admin_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "use_spot" {
+  description = "Use FARGATE_SPOT as the preferred capacity provider (~70% cheaper) with regular FARGATE as fallback. Spot tasks can be interrupted with a 2-minute warning; EFS persistence means no data loss on restart."
+  type        = bool
+  default     = true
+}

@@ -68,7 +68,7 @@ GitHub Actions (push to main)
 | **EFS** | Encrypted persistent volume for the SQLite database |
 | **ALB** | Public HTTP entry point; routes traffic to ECS |
 | **SSM Parameter Store** | Securely stores the admin API key |
-| **CloudWatch Logs** | Container stdout/stderr retained for 30 days |
+| **CloudWatch Logs** | Container stdout/stderr retained for 14 days |
 | **IAM** | Least-privilege execution and task roles |
 
 > The ECS task pulls `patrickhulce/lhci-server:0.13.0` directly from Docker
@@ -234,6 +234,7 @@ a more ergonomic workflow. The file is excluded from version control by
 | `container_cpu` | `256` | ECS task CPU units (256 = 0.25 vCPU) |
 | `container_memory` | `512` | ECS task memory in MiB |
 | `lhci_admin_api_key` | *(required)* | Admin API key stored in SSM Parameter Store |
+| `use_spot` | `true` | Use FARGATE_SPOT (preferred, ~70% cheaper) with FARGATE as fallback |
 
 ### Outputs
 

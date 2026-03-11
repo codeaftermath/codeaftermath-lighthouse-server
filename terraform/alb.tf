@@ -7,6 +7,12 @@ resource "aws_lb" "main" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.public[*].id
 
+  # Prevent accidental deletion; disable before running terraform destroy.
+  enable_deletion_protection = true
+
+  # Drop requests that contain invalid HTTP header fields (prevents header injection).
+  drop_invalid_header_fields = true
+
   tags = {
     Name = "${var.project_name}-alb"
   }
