@@ -31,7 +31,7 @@ reports and viewing results.
 
 You will also need the following values from whoever manages the server:
 
-- **Server URL** — e.g. `http://codeaftermath-lighthouse-alb-xxxx.us-east-1.elb.amazonaws.com`
+- **Server URL** — e.g. `http://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com`
 - **Admin API key** — used only to create projects (one-time, keep secret)
 - **Build token** — per-project token obtained during registration
 

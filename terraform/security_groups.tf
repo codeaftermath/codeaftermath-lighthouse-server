@@ -13,11 +13,13 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # ALB only needs to reach ECS tasks on the container port within the VPC.
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "LHCI server port to ECS tasks"
+    from_port   = 9001
+    to_port     = 9001
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
   tags = {
@@ -40,11 +42,23 @@ resource "aws_security_group" "ecs" {
     security_groups = [aws_security_group.alb.id]
   }
 
+  # HTTPS (443): pull image from Docker Hub, reach AWS APIs (SSM, CloudWatch).
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTPS to internet (Docker Hub, AWS APIs)"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # NFS (2049): mount EFS within the VPC; EFS transit encryption uses a local
+  # TLS proxy so the wire traffic still exits on the standard NFS port.
+  egress {
+    description = "NFS to EFS within VPC"
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
   tags = {
@@ -67,12 +81,9 @@ resource "aws_security_group" "efs" {
     security_groups = [aws_security_group.ecs.id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # EFS mount targets are passive responders; they never initiate outbound
+  # connections. Return traffic is handled by stateful security group tracking
+  # so no egress rule is required.
 
   tags = {
     Name = "${var.project_name}-efs-sg"

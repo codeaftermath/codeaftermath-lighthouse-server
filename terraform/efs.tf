@@ -6,6 +6,16 @@ resource "aws_efs_file_system" "lighthouse_data" {
   throughput_mode  = "bursting"
   encrypted        = true
 
+  # Move files untouched for 7 days to the IA storage class (~92% cheaper).
+  # Restore to primary storage on first access.
+  lifecycle_policy {
+    transition_to_ia = "AFTER_7_DAYS"
+  }
+
+  lifecycle_policy {
+    transition_to_primary_storage_class = "AFTER_1_ACCESS"
+  }
+
   tags = {
     Name = "${var.project_name}-efs"
   }

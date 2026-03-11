@@ -36,13 +36,13 @@ curl -s "$SERVER_URL/v1/version"
 aws ecs describe-services \
   --cluster codeaftermath-lighthouse \
   --services codeaftermath-lighthouse \
-  --region us-east-1 \
+  --region us-west-1 \
   --query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount,Pending:pendingCount}'
 
 # Check target group health
 aws elbv2 describe-target-health \
   --target-group-arn $(cd terraform && terraform output -raw alb_dns_name) \
-  --region us-east-1
+  --region us-west-1
 ```
 
 ### Via the LHCI CLI
@@ -76,7 +76,7 @@ aws ecs update-service \
   --cluster codeaftermath-lighthouse \
   --service codeaftermath-lighthouse \
   --force-new-deployment \
-  --region us-east-1
+  --region us-west-1
 ```
 
 ---
@@ -127,13 +127,13 @@ Navigate to **CloudWatch → Log groups → `/ecs/codeaftermath-lighthouse`**.
 # Stream the most recent logs
 aws logs tail /ecs/codeaftermath-lighthouse \
   --follow \
-  --region us-east-1
+  --region us-west-1
 
 # Filter for errors
 aws logs filter-log-events \
   --log-group-name /ecs/codeaftermath-lighthouse \
   --filter-pattern "ERROR" \
-  --region us-east-1 \
+  --region us-west-1 \
   --query 'events[*].message' \
   --output text
 ```
@@ -145,7 +145,7 @@ aws logs filter-log-events \
   --log-group-name /ecs/codeaftermath-lighthouse \
   --start-time $(date -d '1 hour ago' +%s)000 \
   --end-time $(date +%s)000 \
-  --region us-east-1
+  --region us-west-1
 ```
 
 ---
@@ -250,7 +250,7 @@ curl -s -X DELETE "$SERVER_URL/v1/projects/$PROJECT_ID/builds/$BUILD_ID" \
      --value "<new-key>" \
      --type SecureString \
      --overwrite \
-     --region us-east-1
+     --region us-west-1
    ```
 
 3. Update the GitHub Actions secret `LHCI_ADMIN_API_KEY` in this repository's
@@ -263,7 +263,7 @@ curl -s -X DELETE "$SERVER_URL/v1/projects/$PROJECT_ID/builds/$BUILD_ID" \
      --cluster codeaftermath-lighthouse \
      --service codeaftermath-lighthouse \
      --force-new-deployment \
-     --region us-east-1
+     --region us-west-1
    ```
 
 ---
@@ -287,7 +287,7 @@ aws backup create-backup-plan \
       "Lifecycle": {"DeleteAfterDays": 30}
     }]
   }' \
-  --region us-east-1
+  --region us-west-1
 ```
 
 ### Manual backup using an ECS task
@@ -307,7 +307,7 @@ aws ecs run-task \
     }]
   }' \
   --network-configuration "awsvpcConfiguration={subnets=[<subnet-id>],assignPublicIp=ENABLED}" \
-  --region us-east-1
+  --region us-west-1
 ```
 
 ---
@@ -341,8 +341,8 @@ cd terraform
 terraform destroy -var="lhci_admin_api_key=<key>"
 ```
 
-The bootstrap resources (S3 state bucket + DynamoDB lock table) are protected
-by `lifecycle { prevent_destroy = true }`. To remove them, first remove that
+The bootstrap resource (S3 state bucket) is protected
+by `lifecycle { prevent_destroy = true }`. To remove it, first remove that
 lifecycle block in `terraform/bootstrap/main.tf`, then:
 
 ```bash

@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_log_group" "lighthouse" {
   name              = "/ecs/${var.project_name}"
-  retention_in_days = 30
+  retention_in_days = 14
 
   tags = {
     Name = "${var.project_name}-logs"
@@ -14,7 +14,7 @@ resource "aws_ecs_cluster" "main" {
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 
   tags = {
@@ -113,10 +113,29 @@ resource "aws_ecs_service" "lighthouse" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.lighthouse.arn
   desired_count   = 1
-  launch_type     = "FARGATE"
+
+  # Prefer FARGATE_SPOT (~70% cheaper) with regular FARGATE as fallback.
+  # When use_spot = false both providers keep non-zero weights so the
+  # fallback path stays valid; weight = 0 on SPOT simply excludes it.
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    base              = 0
+    weight            = var.use_spot ? 3 : 0
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    base              = 0
+    weight            = 1
+  }
 
   # Force a new deployment when the task definition changes.
   force_new_deployment = true
+
+  # Ensure zero-downtime rolling updates and wait for the service to stabilise.
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+  wait_for_steady_state              = true
 
   network_configuration {
     subnets          = aws_subnet.public[*].id

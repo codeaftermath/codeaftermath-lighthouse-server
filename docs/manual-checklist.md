@@ -16,9 +16,9 @@ These steps are performed once, before the server is deployed for the first time
 
 - [ ] Log in to (or create) an AWS account.
 - [ ] Create a dedicated IAM user (e.g. `github-actions-lighthouse`) that the
-  GitHub Actions workflows will use to run Terraform and push Docker images.
+  GitHub Actions workflows will use to run Terraform.
 
-The IAM user needs permissions across ten AWS services. Two options are shown
+The IAM user needs permissions across nine AWS services. Two options are shown
 below — choose the one that fits your security requirements.
 
 ---
@@ -33,14 +33,12 @@ fastest way to get everything working.
 |---|---|
 | `AmazonEC2FullAccess` | VPC, subnets, security groups, internet gateway, route tables |
 | `ElasticLoadBalancingFullAccess` | Application Load Balancer, target groups, listeners |
-| `AmazonEC2ContainerRegistryFullAccess` | ECR — create repo, push/pull images |
 | `AmazonECS_FullAccess` | ECS cluster, task definitions, service |
 | `AmazonElasticFileSystemFullAccess` | EFS file system, mount targets, access points |
 | `AmazonSSMFullAccess` | SSM Parameter Store (admin API key) |
 | `IAMFullAccess` | IAM roles and policies created for ECS execution/task roles |
 | `CloudWatchLogsFullAccess` | CloudWatch log group for ECS container output |
-| `AmazonS3FullAccess` | S3 bucket for Terraform remote state |
-| `AmazonDynamoDBFullAccess` | DynamoDB table for Terraform state locking |
+| `AmazonS3FullAccess` | S3 bucket for Terraform remote state and state locking |
 
 > ⚠️ These managed policies are intentionally broad. They are fine for a
 > personal or team project but should be replaced with a least-privilege
@@ -52,8 +50,7 @@ fastest way to get everything working.
 
 The file [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json)
 contains a single JSON policy with exactly the IAM actions required to run
-`terraform apply` (bootstrap + main) and push Docker images to ECR. No
-service has more access than it needs.
+`terraform apply` (bootstrap + main). No service has more access than it needs.
 
 **To attach it:**
 
@@ -62,7 +59,7 @@ service has more access than it needs.
 aws iam create-policy \
   --policy-name codeaftermath-lighthouse-github-actions \
   --policy-document file://terraform/iam-policy-github-actions.json \
-  --region us-east-1
+  --region us-west-1
 
 # 2. Attach it to the IAM user (replace <account-id>)
 aws iam attach-user-policy \
@@ -94,9 +91,9 @@ Or attach it in the IAM console:
 
 ### 1.2 — Bootstrap the Terraform state backend (run locally, once)
 
-The S3 bucket and DynamoDB table that hold Terraform remote state must exist
-before the main configuration can be initialised. Run these commands from your
-local machine with the IAM credentials above configured in your shell:
+The S3 bucket that holds Terraform remote state must exist before the main
+configuration can be initialised. Run these commands from your local machine
+with the IAM credentials above configured in your shell:
 
 ```bash
 # Configure AWS CLI with the credentials from step 1.1
@@ -108,11 +105,10 @@ terraform init
 terraform apply   # type 'yes' when prompted
 ```
 
-Expected result: two new resources in AWS —
+Expected result: one new resource in AWS —
 - S3 bucket `codeaftermath-terraform-state` (versioned, AES-256 encrypted)
-- DynamoDB table `codeaftermath-terraform-locks`
 
-> **Only do this once.** The bucket and table have `prevent_destroy = true`
+> **Only do this once.** The bucket has `prevent_destroy = true`
 > and should never be re-created.
 
 ### 1.3 — Generate the LHCI admin API key
@@ -136,10 +132,12 @@ and add the following **repository secrets**:
 |---|---|
 | `AWS_ACCESS_KEY_ID` | The key ID from step 1.1 |
 | `AWS_SECRET_ACCESS_KEY` | The secret key from step 1.1 |
+| `AWS_DEFAULT_REGION` | AWS region to deploy into (e.g. `us-west-1`) |
 | `LHCI_ADMIN_API_KEY` | The hex string generated in step 1.3 |
 
 - [ ] `AWS_ACCESS_KEY_ID` added
 - [ ] `AWS_SECRET_ACCESS_KEY` added
+- [ ] `AWS_DEFAULT_REGION` added
 - [ ] `LHCI_ADMIN_API_KEY` added
 
 ### 1.5 — Create the `production` GitHub Actions environment
@@ -163,11 +161,9 @@ Once steps 1.1–1.5 are complete, merge this pull request (or push to `main`).
 The **Deploy Lighthouse Server** GitHub Actions workflow will run automatically
 and:
 
-1. Create the ECR repository.
-2. Build the Docker image and push it to ECR.
-3. Run `terraform apply` to provision all remaining AWS resources (VPC, ECS,
+1. Run `terraform apply` to provision all AWS resources (VPC, ECS,
    EFS, ALB, SSM, CloudWatch, IAM).
-4. Print the public ALB URL in the workflow log.
+2. Print the public ALB URL in the workflow log.
 
 - [ ] PR merged / pushed to `main`
 - [ ] **Deploy Lighthouse Server** workflow completed successfully
@@ -185,7 +181,7 @@ Print server URL**.
 ```bash
 cd terraform
 terraform output lighthouse_server_url
-# http://codeaftermath-lighthouse-alb-xxxx.us-east-1.elb.amazonaws.com
+# http://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com
 ```
 
 - [ ] Server URL noted: `http://___________________________________`
@@ -366,7 +362,7 @@ recommended for a production setup.
 The ALB currently serves plain HTTP on port 80. To add HTTPS:
 
 1. **Request or import a TLS certificate** in AWS Certificate Manager (ACM)
-   in the same region (`us-east-1`).
+   in the same region as the deployment.
 2. **Add an HTTPS listener** (port 443) to the ALB and attach the ACM
    certificate. You can do this in `terraform/alb.tf` by adding an
    `aws_lb_listener` resource with `protocol = "HTTPS"`.
@@ -396,7 +392,7 @@ aws backup create-backup-plan \
       "Lifecycle": {"DeleteAfterDays": 30}
     }]
   }' \
-  --region us-east-1
+  --region us-west-1
 ```
 
 Then assign the EFS file system to the backup plan using the AWS Console or

@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy resources into."
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-1"
 }
 
 variable "environment" {
@@ -17,7 +17,7 @@ variable "project_name" {
 }
 
 variable "container_image" {
-  description = "Full URI of the Docker image to run in ECS (e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/codeaftermath-lighthouse:sha)."
+  description = "Docker image URI to run in ECS. Defaults to the official public LHCI server image."
   type        = string
   default     = "patrickhulce/lhci-server:0.13.0"
 }
@@ -38,4 +38,10 @@ variable "lhci_admin_api_key" {
   description = "Admin API key for the LHCI server. Must be a 20-character or longer string."
   type        = string
   sensitive   = true
+}
+
+variable "use_spot" {
+  description = "Use FARGATE_SPOT as the preferred capacity provider (~70% cheaper) with regular FARGATE as fallback. Spot tasks can be interrupted with a 2-minute warning; EFS persistence means no data loss on restart."
+  type        = bool
+  default     = true
 }
