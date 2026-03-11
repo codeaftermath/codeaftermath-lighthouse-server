@@ -35,7 +35,7 @@ provider "aws" {
 variable "aws_region" {
   description = "AWS region for the Terraform state bucket."
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-1"
 }
 
 # ── S3 State Bucket ────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy resources into."
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-1"
 }
 
 variable "environment" {
@@ -17,7 +17,7 @@ variable "project_name" {
 }
 
 variable "container_image" {
-  description = "Full URI of the Docker image to run in ECS (e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/codeaftermath-lighthouse:sha)."
+  description = "Docker image URI to run in ECS. Defaults to the official public LHCI server image."
   type        = string
   default     = "patrickhulce/lhci-server:0.13.0"
 }

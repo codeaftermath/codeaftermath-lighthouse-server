@@ -1,13 +1,13 @@
 # Copy this file to terraform.tfvars and fill in the required values.
 # Do NOT commit terraform.tfvars — it is excluded by .gitignore.
 
-aws_region   = "us-east-1"
+aws_region   = "us-west-1"
 environment  = "production"
 project_name = "codeaftermath-lighthouse"
 
-# Full ECR image URI set automatically by the deploy workflow.
-# Override here only for manual runs.
-# container_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/codeaftermath-lighthouse:latest"
+# The ECS task pulls the official public LHCI server image from Docker Hub by
+# default. Override here only if you want to use a different image.
+# container_image = "patrickhulce/lhci-server:0.13.0"
 
 # Admin API key for the LHCI server (20+ character string).
 lhci_admin_api_key = "REPLACE_WITH_STRONG_SECRET"

@@ -14,7 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AWS_REGION: us-east-1
   TF_WORKING_DIR: terraform
 
 jobs:
@@ -34,12 +33,12 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "~> 1.5"
+          terraform_version: "~> 1.10"
 
       - name: Terraform init
         id: init
@@ -55,6 +54,7 @@ jobs:
         id: plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
+          TF_VAR_aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
           TF_VAR_lhci_admin_api_key: ${{ secrets.LHCI_ADMIN_API_KEY }}
         run: terraform plan -no-color -out=tfplan
         continue-on-error: true

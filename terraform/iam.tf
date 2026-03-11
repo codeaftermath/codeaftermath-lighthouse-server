@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "ecs_assume_role" {
 }
 
 # ── ECS Task Execution Role ────────────────────────────────────────────────────
-# Used by the ECS agent to pull images from ECR and write logs to CloudWatch.
+# Used by the ECS agent to pull images and write logs to CloudWatch.
 
 resource "aws_iam_role" "ecs_task_execution" {
   name               = "${var.project_name}-ecs-exec-role"

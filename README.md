@@ -38,13 +38,11 @@ automated via **GitHub Actions**.
 ```
 GitHub Actions (push to main)
         │
-        ├─ 1. build Docker image
-        ├─ 2. push to Amazon ECR
-        └─ 3. terraform apply
+        └─ terraform apply
                     │
                     ▼
        ┌────────────────────────────────────────┐
-       │  AWS VPC (us-east-1)                   │
+       │  AWS VPC (us-west-1)                   │
        │                                        │
        │  ┌──────────────────────────────────┐  │
        │  │  Application Load Balancer       │  │
@@ -54,18 +52,18 @@ GitHub Actions (push to main)
        │  ┌───────────────▼──────────────────┐  │
        │  │  ECS Fargate task                │  │
        │  │  lhci-server container (9001)    │  │
+       │  │  image: Docker Hub (public)      │  │
        │  │         │ EFS mount              │  │
        │  │    /data/lhci.db (SQLite)        │  │
        │  └──────────────────────────────────┘  │
        │                                        │
-       │  ECR  │  SSM Parameter Store           │
+       │  SSM Parameter Store                   │
        │  CloudWatch Logs (/ecs/...)            │
        └────────────────────────────────────────┘
 ```
 
 | AWS Resource | Purpose |
 |---|---|
-| **ECR** | Stores versioned `lhci-server` Docker images |
 | **ECS Fargate** | Runs the Lighthouse CI server container (serverless) |
 | **EFS** | Encrypted persistent volume for the SQLite database |
 | **ALB** | Public HTTP entry point; routes traffic to ECS |
@@ -73,26 +71,28 @@ GitHub Actions (push to main)
 | **CloudWatch Logs** | Container stdout/stderr retained for 30 days |
 | **IAM** | Least-privilege execution and task roles |
 
+> The ECS task pulls `patrickhulce/lhci-server:0.13.0` directly from Docker
+> Hub. No private container registry is required.
+
 ---
 
 ## Repository Layout
 
 ```
 .
-├── Dockerfile                        # lhci-server container image
+├── Dockerfile                        # lhci-server image (local development only)
 ├── docker-compose.yml                # Local development
 ├── .github/
 │   └── workflows/
-│       ├── deploy.yml                # CI/CD: build → ECR → terraform apply
+│       ├── deploy.yml                # CI/CD: terraform apply
 │       └── terraform-plan.yml        # PR preview: terraform plan as PR comment
 ├── terraform/
 │   ├── backend.tf                    # S3 remote state
 │   ├── versions.tf                   # Terraform + provider version pins
 │   ├── variables.tf                  # Input variables
-│   ├── outputs.tf                    # Outputs (server URL, ECR URL, …)
+│   ├── outputs.tf                    # Outputs (server URL, …)
 │   ├── networking.tf                 # VPC, subnets, IGW, route tables
 │   ├── security_groups.tf            # ALB / ECS / EFS security groups
-│   ├── ecr.tf                        # ECR repository + lifecycle policy
 │   ├── efs.tf                        # EFS file system, mount targets, access point
 │   ├── ssm.tf                        # SSM SecureString for admin API key
 │   ├── iam.tf                        # ECS execution + task IAM roles
@@ -116,9 +116,9 @@ GitHub Actions (push to main)
 |---|---|
 | [Terraform](https://developer.hashicorp.com/terraform/install) | ≥ 1.10 |
 | [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) | v2 |
-| [Docker](https://docs.docker.com/get-docker/) | any recent |
+| [Docker](https://docs.docker.com/get-docker/) | any recent (local dev only) |
 
-An AWS IAM user with permissions to manage ECS, ECR, VPC, EFS, ALB, IAM,
+An AWS IAM user with permissions to manage ECS, VPC, EFS, ALB, IAM,
 SSM, CloudWatch Logs, and S3. See
 [`terraform/iam-policy-github-actions.json`](terraform/iam-policy-github-actions.json)
 for a ready-to-use least-privilege policy, or the
@@ -154,6 +154,7 @@ and add the following:
 |---|---|
 | `AWS_ACCESS_KEY_ID` | IAM access key ID |
 | `AWS_SECRET_ACCESS_KEY` | IAM secret access key |
+| `AWS_DEFAULT_REGION` | AWS region to deploy into (e.g. `us-west-1`) |
 | `LHCI_ADMIN_API_KEY` | Admin API key for the LHCI server (generate with `openssl rand -hex 20`) |
 
 ### 3 — Push to `main`
@@ -161,10 +162,8 @@ and add the following:
 Once the bootstrap resources exist and secrets are configured, merge or push
 to the `main` branch. The [deploy workflow](.github/workflows/deploy.yml) will:
 
-1. Create the ECR repository (Terraform targeted apply).
-2. Build the Docker image and push it to ECR.
-3. Run `terraform apply` to provision all remaining AWS resources.
-4. Print the ALB server URL as a workflow output.
+1. Run `terraform apply` to provision all AWS resources.
+2. Print the ALB server URL as a workflow output.
 
 The server will be available at the URL printed by the workflow. You can also
 retrieve it at any time:
@@ -228,10 +227,10 @@ a more ergonomic workflow. The file is excluded from version control by
 
 | Variable | Default | Description |
 |---|---|---|
-| `aws_region` | `us-east-1` | AWS region |
+| `aws_region` | `us-west-1` | AWS region |
 | `environment` | `production` | Environment tag applied to all resources |
 | `project_name` | `codeaftermath-lighthouse` | Name prefix for all resources |
-| `container_image` | `patrickhulce/lhci-server:0.13.0` | Docker image URI (overridden by deploy workflow) |
+| `container_image` | `patrickhulce/lhci-server:0.13.0` | Docker image pulled by ECS (public Docker Hub image) |
 | `container_cpu` | `256` | ECS task CPU units (256 = 0.25 vCPU) |
 | `container_memory` | `512` | ECS task memory in MiB |
 | `lhci_admin_api_key` | *(required)* | Admin API key stored in SSM Parameter Store |
@@ -241,7 +240,6 @@ a more ergonomic workflow. The file is excluded from version control by
 | Output | Description |
 |---|---|
 | `lighthouse_server_url` | Public URL of the Lighthouse CI server |
-| `ecr_repository_url` | ECR repository URL (used by the deploy workflow) |
 | `ecs_cluster_name` | Name of the ECS cluster |
 | `ecs_service_name` | Name of the ECS service |
 | `alb_dns_name` | Raw ALB DNS name |
@@ -252,7 +250,7 @@ a more ergonomic workflow. The file is excluded from version control by
 
 | Workflow | Trigger | Description |
 |---|---|---|
-| [`deploy.yml`](.github/workflows/deploy.yml) | Push to `main` or manual dispatch | Builds Docker image, pushes to ECR, runs `terraform apply` |
+| [`deploy.yml`](.github/workflows/deploy.yml) | Push to `main` or manual dispatch | Runs `terraform apply` to provision or update all AWS resources |
 | [`terraform-plan.yml`](.github/workflows/terraform-plan.yml) | Pull request to `main` (terraform paths) | Runs `terraform validate` + `terraform plan`; posts the plan as a PR comment |
 
 ### Required GitHub repository configuration
@@ -261,6 +259,7 @@ a more ergonomic workflow. The file is excluded from version control by
 |---|---|---|
 | Secret | `AWS_ACCESS_KEY_ID` | IAM access key |
 | Secret | `AWS_SECRET_ACCESS_KEY` | IAM secret key |
+| Secret | `AWS_DEFAULT_REGION` | AWS region (e.g. `us-west-1`) |
 | Secret | `LHCI_ADMIN_API_KEY` | LHCI admin API key |
 | Environment | `production` | Gates the `deploy` job in `deploy.yml` (optional but recommended) |
 
