@@ -114,7 +114,7 @@ GitHub Actions (push to main)
 
 | Tool | Version |
 |---|---|
-| [Terraform](https://developer.hashicorp.com/terraform/install) | ≥ 1.10 |
+| [Terraform](https://developer.hashicorp.com/terraform/install) | ≥ 1.14 |
 | [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) | v2 |
 | [Docker](https://docs.docker.com/get-docker/) | any recent (local dev only) |
 
