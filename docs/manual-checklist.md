@@ -365,14 +365,14 @@ HTTPS and HTTP → HTTPS redirect are already configured in Terraform. If you
 want Terraform to request/manage your ACM certificate and you use external DNS
 (for example Cloudflare), use the manual DNS validation flow:
 
-1. Set `create_acm_certificate=true` in `terraform/terraform.tfvars`.
-2. Run `terraform apply` and capture `acm_dns_validation_records` output.
-3. Create those CNAME records in your DNS provider.
-4. Wait for ACM certificate status to become `ISSUED` in `us-west-1`.
-5. Set `acm_certificate_arn` to the issued ARN and update GitHub secret
+1. Run the one-time ACM stack in `terraform/bootstrap/acm` and capture
+   `acm_dns_validation_records` output.
+2. Create those CNAME records in your DNS provider.
+3. Wait for ACM certificate status to become `ISSUED` in `us-west-1`.
+4. Set `acm_certificate_arn` to the issued ARN and update GitHub secret
   `ACM_CERTIFICATE_ARN`.
 
-- [ ] `create_acm_certificate` flow completed (or existing ACM cert reused)
+- [ ] ACM bootstrap flow completed (or existing ACM cert reused)
 - [ ] DNS validation CNAMEs created in external DNS
 - [ ] Certificate is `ISSUED` in `us-west-1`
 - [ ] `acm_certificate_arn` set in tfvars and GitHub secret updated

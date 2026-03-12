@@ -101,7 +101,9 @@ GitHub Actions (push to main)
 │   ├── iam-policy-github-actions.json  # Least-privilege policy for the CI/CD IAM user
 │   ├── terraform.tfvars.example      # Example variable values (copy + fill in)
 │   └── bootstrap/
-│       └── main.tf                   # One-time S3 backend setup
+│       ├── main.tf                   # One-time S3 backend setup
+│       └── acm/
+│           └── main.tf               # One-time ACM certificate request + DNS validation outputs
 └── docs/
     ├── manual-checklist.md           # Every manual step required before go-live
     ├── onboarding.md                 # Connect a new project to the server
@@ -232,14 +234,15 @@ a more ergonomic workflow. The file is excluded from version control by
 | `environment` | `production` | Environment tag applied to all resources |
 | `project_name` | `codeaftermath-lighthouse` | Name prefix for all resources |
 | `acm_certificate_arn` | `null` | ACM certificate ARN used by the ALB HTTPS listener |
-| `create_acm_certificate` | `false` | Request ACM cert in Terraform and output DNS validation records for manual external DNS setup |
-| `acm_domain_name` | `*.codeaftermath.com` | Primary domain for ACM request when `create_acm_certificate=true` |
-| `acm_subject_alternative_names` | `codeaftermath.com` | SAN list for ACM request when `create_acm_certificate=true` |
 | `container_image` | `codeaftermath/lhci-server:0.15.1` | Docker image pulled by ECS (public Docker Hub image) |
 | `container_cpu` | `256` | ECS task CPU units (256 = 0.25 vCPU) |
 | `container_memory` | `512` | ECS task memory in MiB |
 | `lhci_admin_api_key` | *(required)* | Admin API key stored in SSM Parameter Store |
 | `use_spot` | `true` | Use FARGATE_SPOT (preferred, ~70% cheaper) with FARGATE as fallback |
+
+For one-time ACM certificate request and manual DNS validation, run the
+dedicated stack in `terraform/bootstrap/acm` and then set
+`acm_certificate_arn` in the main stack to the issued certificate ARN.
 
 ### Outputs
 
