@@ -17,7 +17,7 @@ variable "project_name" {
 }
 
 variable "container_image" {
-  description = "Docker image URI to run in ECS. Defaults to the official public LHCI server image."
+  description = "Docker image URI to run in ECS. Defaults to the CodeAftermath-maintained public LHCI server image."
   type        = string
   default     = "codeaftermath/lhci-server:0.15.1"
 }
