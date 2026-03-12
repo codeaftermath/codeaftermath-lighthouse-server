@@ -7,14 +7,11 @@ RUN apk add --no-cache tini
 RUN npm install -g @lhci/server@0.15.1 @lhci/cli@0.15.1 sqlite3@5.1.7 && \
     npm cache clean --force
 
-# Create a dedicated non-root runtime user.
-RUN addgroup -S lhci && adduser -S -G lhci lhci
-
 # Persist SQLite database files in /data and grant ownership to the runtime user.
-RUN mkdir -p /data && chown lhci:lhci /data
+RUN mkdir -p /data && chown node:node /data
 
 # Drop root privileges for runtime.
-USER lhci
+USER node
 
 # Declare persistent storage mount point.
 VOLUME ["/data"]
