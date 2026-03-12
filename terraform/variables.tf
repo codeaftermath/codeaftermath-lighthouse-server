@@ -16,6 +16,30 @@ variable "project_name" {
   default     = "codeaftermath-lighthouse"
 }
 
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN in the same region as the ALB (for HTTPS listener)."
+  type        = string
+  default     = null
+}
+
+variable "create_acm_certificate" {
+  description = "When true, Terraform requests an ACM certificate and outputs DNS validation records for manual creation in external DNS providers (for example Cloudflare)."
+  type        = bool
+  default     = false
+}
+
+variable "acm_domain_name" {
+  description = "Primary domain name for ACM certificate request (for example *.codeaftermath.com). Used only when create_acm_certificate=true."
+  type        = string
+  default     = "*.codeaftermath.com"
+}
+
+variable "acm_subject_alternative_names" {
+  description = "Optional SAN entries for ACM certificate request. Used only when create_acm_certificate=true."
+  type        = list(string)
+  default     = ["codeaftermath.com"]
+}
+
 variable "container_image" {
   description = "Docker image URI to run in ECS. Defaults to the CodeAftermath-maintained public LHCI server image."
   type        = string

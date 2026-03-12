@@ -156,7 +156,7 @@ All project management uses the LHCI admin API. Set `SERVER_URL` and
 `ADMIN_KEY` before running these commands.
 
 ```bash
-SERVER_URL="http://<alb-dns-name>"
+SERVER_URL="https://<alb-dns-name>"
 ADMIN_KEY="<lhci_admin_api_key>"
 ```
 
@@ -320,8 +320,9 @@ aws ecs run-task \
    RUN npm install -g @lhci/server@<new-version> && \
    ```
 
-2. Commit the change and push to `main`. The deploy workflow will build a
-   new image, push it to ECR, and update the ECS service automatically.
+2. Commit the change and push to `main`. The deploy workflow will run
+  `terraform apply` and update the ECS task definition to use the configured
+  `container_image` value.
 
 To check available versions:
 

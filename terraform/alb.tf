@@ -51,6 +51,31 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.acm_certificate_arn
+
+  lifecycle {
+    precondition {
+      condition     = var.acm_certificate_arn != null
+      error_message = "acm_certificate_arn must be set for HTTPS listener. If you are creating a new ACM certificate with Terraform, request it first, add DNS validation records in Cloudflare, wait for issuance, then set acm_certificate_arn to the issued certificate ARN."
+    }
+  }
+
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.lighthouse.arn
   }

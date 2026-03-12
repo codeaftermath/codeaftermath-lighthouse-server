@@ -45,10 +45,10 @@ GitHub Actions (push to main)
        │  AWS VPC (us-west-1)                   │
        │                                        │
        │  ┌──────────────────────────────────┐  │
-       │  │  Application Load Balancer       │  │
-       │  │  (port 80, public)               │  │
+      │  │  Application Load Balancer       │  │
+      │  │  (ports 80/443, public)          │  │
        │  └───────────────┬──────────────────┘  │
-       │                  │ HTTP → 9001          │
+      │                  │ HTTPS → 9001         │
        │  ┌───────────────▼──────────────────┐  │
        │  │  ECS Fargate task                │  │
        │  │  lhci-server container (9001)    │  │
@@ -66,7 +66,7 @@ GitHub Actions (push to main)
 |---|---|
 | **ECS Fargate** | Runs the Lighthouse CI server container (serverless) |
 | **EFS** | Encrypted persistent volume for the SQLite database |
-| **ALB** | Public HTTP entry point; routes traffic to ECS |
+| **ALB** | Public HTTPS entry point; redirects HTTP to HTTPS and routes traffic to ECS |
 | **SSM Parameter Store** | Securely stores the admin API key |
 | **CloudWatch Logs** | Container stdout/stderr retained for 14 days |
 | **IAM** | Least-privilege execution and task roles |
@@ -96,7 +96,7 @@ GitHub Actions (push to main)
 │   ├── efs.tf                        # EFS file system, mount targets, access point
 │   ├── ssm.tf                        # SSM SecureString for admin API key
 │   ├── iam.tf                        # ECS execution + task IAM roles
-│   ├── alb.tf                        # ALB, target group, HTTP listener
+│   ├── alb.tf                        # ALB, target group, HTTP->HTTPS redirect, HTTPS listener
 │   ├── ecs.tf                        # ECS cluster, task definition, service
 │   ├── iam-policy-github-actions.json  # Least-privilege policy for the CI/CD IAM user
 │   ├── terraform.tfvars.example      # Example variable values (copy + fill in)
@@ -155,6 +155,7 @@ and add the following:
 | `AWS_ACCESS_KEY_ID` | IAM access key ID |
 | `AWS_SECRET_ACCESS_KEY` | IAM secret access key |
 | `AWS_DEFAULT_REGION` | AWS region to deploy into (e.g. `us-west-1`) |
+| `ACM_CERTIFICATE_ARN` | ACM certificate ARN in `us-west-1` for the ALB HTTPS listener |
 | `LHCI_ADMIN_API_KEY` | Admin API key for the LHCI server (generate with `openssl rand -hex 20`) |
 
 ### 3 — Push to `main`
@@ -230,6 +231,10 @@ a more ergonomic workflow. The file is excluded from version control by
 | `aws_region` | `us-west-1` | AWS region |
 | `environment` | `production` | Environment tag applied to all resources |
 | `project_name` | `codeaftermath-lighthouse` | Name prefix for all resources |
+| `acm_certificate_arn` | `null` | ACM certificate ARN used by the ALB HTTPS listener |
+| `create_acm_certificate` | `false` | Request ACM cert in Terraform and output DNS validation records for manual external DNS setup |
+| `acm_domain_name` | `*.codeaftermath.com` | Primary domain for ACM request when `create_acm_certificate=true` |
+| `acm_subject_alternative_names` | `codeaftermath.com` | SAN list for ACM request when `create_acm_certificate=true` |
 | `container_image` | `codeaftermath/lhci-server:0.15.1` | Docker image pulled by ECS (public Docker Hub image) |
 | `container_cpu` | `256` | ECS task CPU units (256 = 0.25 vCPU) |
 | `container_memory` | `512` | ECS task memory in MiB |
@@ -261,6 +266,7 @@ a more ergonomic workflow. The file is excluded from version control by
 | Secret | `AWS_ACCESS_KEY_ID` | IAM access key |
 | Secret | `AWS_SECRET_ACCESS_KEY` | IAM secret key |
 | Secret | `AWS_DEFAULT_REGION` | AWS region (e.g. `us-west-1`) |
+| Secret | `ACM_CERTIFICATE_ARN` | ACM certificate ARN in `us-west-1` |
 | Secret | `LHCI_ADMIN_API_KEY` | LHCI admin API key |
 | Environment | `production` | Gates the `deploy` job in `deploy.yml` (optional but recommended) |
 

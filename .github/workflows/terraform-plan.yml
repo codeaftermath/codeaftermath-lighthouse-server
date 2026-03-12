@@ -55,6 +55,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           TF_VAR_aws_region: ${{ secrets.AWS_DEFAULT_REGION }}
+          TF_VAR_acm_certificate_arn: ${{ secrets.ACM_CERTIFICATE_ARN }}
           TF_VAR_lhci_admin_api_key: ${{ secrets.LHCI_ADMIN_API_KEY }}
         run: terraform plan -no-color -out=tfplan
         continue-on-error: true

@@ -1,6 +1,6 @@
 output "lighthouse_server_url" {
   description = "Public URL of the Lighthouse CI server."
-  value       = "http://${aws_lb.main.dns_name}"
+  value       = "https://${aws_lb.main.dns_name}"
 }
 
 output "ecs_cluster_name" {

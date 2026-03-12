@@ -133,11 +133,13 @@ and add the following **repository secrets**:
 | `AWS_ACCESS_KEY_ID` | The key ID from step 1.1 |
 | `AWS_SECRET_ACCESS_KEY` | The secret key from step 1.1 |
 | `AWS_DEFAULT_REGION` | AWS region to deploy into (e.g. `us-west-1`) |
+| `ACM_CERTIFICATE_ARN` | ACM certificate ARN in `us-west-1` for ALB HTTPS |
 | `LHCI_ADMIN_API_KEY` | The hex string generated in step 1.3 |
 
 - [ ] `AWS_ACCESS_KEY_ID` added
 - [ ] `AWS_SECRET_ACCESS_KEY` added
 - [ ] `AWS_DEFAULT_REGION` added
+- [ ] `ACM_CERTIFICATE_ARN` added
 - [ ] `LHCI_ADMIN_API_KEY` added
 
 ### 1.5 — Create the `production` GitHub Actions environment
@@ -181,15 +183,15 @@ Print server URL**.
 ```bash
 cd terraform
 terraform output lighthouse_server_url
-# http://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com
+# https://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com
 ```
 
-- [ ] Server URL noted: `http://___________________________________`
+- [ ] Server URL noted: `https://___________________________________`
 
 ### 1.8 — Verify the server is running
 
 ```bash
-curl http://<alb-dns-name>/version
+curl https://<alb-dns-name>/version
 # {"version":"0.15.1"}
 ```
 
@@ -210,7 +212,7 @@ installed (`npm install -g @lhci/cli`):
 ```bash
 lhci wizard
 # When prompted, enter:
-#   LHCI server URL → http://<alb-dns-name>
+#   LHCI server URL → https://<alb-dns-name>
 #   Project name    → my-project
 #   External URL    → https://www.example.com
 ```
@@ -220,7 +222,7 @@ The wizard prints a **build token** at the end.
 **Alternatively**, use `curl`:
 
 ```bash
-SERVER_URL="http://<alb-dns-name>"
+SERVER_URL="https://<alb-dns-name>"
 ADMIN_KEY="<lhci_admin_api_key>"
 
 curl -s -X POST "$SERVER_URL/v1/projects" \
@@ -263,7 +265,7 @@ In the **project** repository (not this one):
 
 | Variable name | Value |
 |---|---|
-| `LHCI_SERVER_URL` | `http://<alb-dns-name>` from step 1.7 |
+| `LHCI_SERVER_URL` | `https://<alb-dns-name>` from step 1.7 |
 
 - [ ] `LHCI_SERVER_URL` variable added to the project repository
 
@@ -345,7 +347,7 @@ After the workflow runs for the first time, open the server dashboard to
 confirm reports are appearing:
 
 ```
-http://<alb-dns-name>
+https://<alb-dns-name>
 ```
 
 - [ ] First Lighthouse report visible in the server dashboard for this project
@@ -357,24 +359,23 @@ http://<alb-dns-name>
 These tasks are not required for the server to run, but are strongly
 recommended for a production setup.
 
-### 3.1 — Enable a custom domain with HTTPS
+### 3.1 — Manage ACM certificates in Terraform (manual external DNS validation)
 
-The ALB currently serves plain HTTP on port 80. To add HTTPS:
+HTTPS and HTTP → HTTPS redirect are already configured in Terraform. If you
+want Terraform to request/manage your ACM certificate and you use external DNS
+(for example Cloudflare), use the manual DNS validation flow:
 
-1. **Request or import a TLS certificate** in AWS Certificate Manager (ACM)
-   in the same region as the deployment.
-2. **Add an HTTPS listener** (port 443) to the ALB and attach the ACM
-   certificate. You can do this in `terraform/alb.tf` by adding an
-   `aws_lb_listener` resource with `protocol = "HTTPS"`.
-3. **Create a DNS record** in Route 53 (or your DNS provider) pointing your
-   custom domain to the ALB DNS name.
-4. **Redirect HTTP → HTTPS** by updating the port-80 listener's default
-   action to `redirect`.
+1. Set `create_acm_certificate=true` in `terraform/terraform.tfvars`.
+2. Run `terraform apply` and capture `acm_dns_validation_records` output.
+3. Create those CNAME records in your DNS provider.
+4. Wait for ACM certificate status to become `ISSUED` in `us-west-1`.
+5. Set `acm_certificate_arn` to the issued ARN and update GitHub secret
+  `ACM_CERTIFICATE_ARN`.
 
-- [ ] ACM certificate requested/validated
-- [ ] HTTPS listener added to the ALB
-- [ ] DNS record created
-- [ ] HTTP → HTTPS redirect configured
+- [ ] `create_acm_certificate` flow completed (or existing ACM cert reused)
+- [ ] DNS validation CNAMEs created in external DNS
+- [ ] Certificate is `ISSUED` in `us-west-1`
+- [ ] `acm_certificate_arn` set in tfvars and GitHub secret updated
 
 ### 3.2 — Enable automatic EFS database backups
 

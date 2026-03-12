@@ -5,6 +5,22 @@ aws_region   = "us-west-1"
 environment  = "production"
 project_name = "codeaftermath-lighthouse"
 
+# ACM certificate for HTTPS on the ALB. Must be in the same region as the ALB
+# (us-west-1 in this stack).
+acm_certificate_arn = "arn:aws:acm:us-west-1:123456789012:certificate/REPLACE_ME"
+
+# Optional: request a new ACM certificate with Terraform and validate it manually
+# in Cloudflare (or another external DNS provider).
+#
+# 1) Set create_acm_certificate=true and run terraform apply.
+# 2) Read output acm_dns_validation_records and create those DNS CNAME records.
+# 3) Wait for ACM certificate to become ISSUED.
+# 4) Set acm_certificate_arn to the issued ARN above (and optionally set
+#    create_acm_certificate=false afterward).
+# create_acm_certificate = true
+# acm_domain_name = "*.codeaftermath.com"
+# acm_subject_alternative_names = ["codeaftermath.com"]
+
 # By default, the ECS task pulls this project's LHCI server image from Docker Hub.
 # Override container_image here only if you want to use a different image.
 # container_image = "codeaftermath/lhci-server:0.15.1"

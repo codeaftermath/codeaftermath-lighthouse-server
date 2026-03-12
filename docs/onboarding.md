@@ -31,7 +31,7 @@ reports and viewing results.
 
 You will also need the following values from whoever manages the server:
 
-- **Server URL** — e.g. `http://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com`
+- **Server URL** — e.g. `https://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com`
 - **Admin API key** — used only to create projects (one-time, keep secret)
 - **Build token** — per-project token obtained during registration
 
@@ -83,7 +83,7 @@ again.**
 ### Option B — `curl` / REST API
 
 ```bash
-SERVER_URL="http://<alb-dns-name>"
+SERVER_URL="https://<alb-dns-name>"
 ADMIN_KEY="<lhci_admin_api_key>"
 
 curl -s -X POST "$SERVER_URL/v1/projects" \
@@ -140,7 +140,7 @@ module.exports = {
     },
     upload: {
       target:        'lhci',
-      serverBaseUrl: 'http://<alb-dns-name>',
+      serverBaseUrl: 'https://<alb-dns-name>',
       token:         process.env.LHCI_BUILD_TOKEN,
     },
   },
@@ -170,7 +170,7 @@ module.exports = {
     },
     upload: {
       target:        'lhci',
-      serverBaseUrl: 'http://<alb-dns-name>',
+      serverBaseUrl: 'https://<alb-dns-name>',
       token:         process.env.LHCI_BUILD_TOKEN,
     },
   },
@@ -189,7 +189,7 @@ module.exports = {
     },
     upload: {
       target:        'lhci',
-      serverBaseUrl: 'http://<alb-dns-name>',
+      serverBaseUrl: 'https://<alb-dns-name>',
       token:         process.env.LHCI_BUILD_TOKEN,
     },
   },
@@ -344,7 +344,7 @@ jobs:
 
 | Type | Name | Value |
 |---|---|---|
-| Variable | `LHCI_SERVER_URL` | `http://<alb-dns-name>` |
+| Variable | `LHCI_SERVER_URL` | `https://<alb-dns-name>` |
 | Secret | `LHCI_BUILD_TOKEN` | Token from [Step 3](#3-register-a-new-project) |
 
 Set these under **Settings → Secrets and variables → Actions** in your repository.
@@ -368,7 +368,7 @@ Set these under **Settings → Secrets and variables → Actions** in your repos
 Open the server URL in a browser:
 
 ```
-http://<alb-dns-name>
+https://<alb-dns-name>
 ```
 
 The dashboard shows:
@@ -381,7 +381,7 @@ The dashboard shows:
 ### Useful API endpoints
 
 ```bash
-SERVER="http://<alb-dns-name>"
+SERVER="https://<alb-dns-name>"
 
 # Server version
 curl "$SERVER/version"
@@ -403,8 +403,8 @@ curl "$SERVER/projects/<project-id>/builds/<build-id>/runs"
 ### `LHCI server reachable` fails
 
 - Confirm the ALB DNS name is correct and the ECS task is running.
-- Check that port 80 is open in the ALB security group.
-- Verify with: `curl -v http://<alb-dns-name>/version`
+- Check that ports 80 and 443 are open in the ALB security group.
+- Verify with: `curl -v https://<alb-dns-name>/version`
 
 ### Build token rejected (401)
 
