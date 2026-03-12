@@ -1,13 +1,9 @@
-# ── ALB Security Group ─────────────────────────────────────────────────────────
+# ── ALB Security Groups ────────────────────────────────────────────────────────
 
-resource "aws_security_group" "alb" {
-  name        = "${var.project_name}-alb-sg"
-  description = "Allow inbound HTTP/HTTPS traffic to the ALB."
+resource "aws_security_group" "alb_http" {
+  name        = "${var.project_name}-alb-http-sg"
+  description = "Allow inbound HTTP traffic to the ALB."
   vpc_id      = aws_vpc.main.id
-
-  lifecycle {
-    prevent_destroy = true
-  }
 
   ingress {
     description = "HTTP from anywhere"
@@ -16,6 +12,25 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # ALB only needs to reach ECS tasks on the container port within the VPC.
+  egress {
+    description = "LHCI server port to ECS tasks"
+    from_port   = 9001
+    to_port     = 9001
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  tags = {
+    Name = "${var.project_name}-alb-http-sg"
+  }
+}
+
+resource "aws_security_group" "alb_https" {
+  name        = "${var.project_name}-alb-https-sg"
+  description = "Allow inbound HTTPS traffic to the ALB."
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "HTTPS from anywhere"
@@ -35,7 +50,7 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name = "${var.project_name}-alb-sg"
+    Name = "${var.project_name}-alb-https-sg"
   }
 }
 
@@ -46,16 +61,15 @@ resource "aws_security_group" "ecs" {
   description = "Allow inbound traffic from the ALB to ECS tasks."
   vpc_id      = aws_vpc.main.id
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   ingress {
-    description     = "LHCI server port from ALB"
-    from_port       = 9001
-    to_port         = 9001
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    description = "LHCI server port from ALB"
+    from_port   = 9001
+    to_port     = 9001
+    protocol    = "tcp"
+    security_groups = [
+      aws_security_group.alb_http.id,
+      aws_security_group.alb_https.id,
+    ]
   }
 
   # HTTPS (443): pull image from Docker Hub, reach AWS APIs (SSM, CloudWatch).
@@ -88,10 +102,6 @@ resource "aws_security_group" "efs" {
   name        = "${var.project_name}-efs-sg"
   description = "Allow NFS traffic from ECS tasks to EFS."
   vpc_id      = aws_vpc.main.id
-
-  lifecycle {
-    prevent_destroy = true
-  }
 
   ingress {
     description     = "NFS from ECS tasks"

@@ -4,8 +4,11 @@ resource "aws_lb" "main" {
   name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  security_groups = [
+    aws_security_group.alb_http.id,
+    aws_security_group.alb_https.id,
+  ]
+  subnets = aws_subnet.public[*].id
 
   # Prevent accidental deletion; disable before running terraform destroy.
   enable_deletion_protection = true
