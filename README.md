@@ -230,7 +230,7 @@ a more ergonomic workflow. The file is excluded from version control by
 | `aws_region` | `us-west-1` | AWS region |
 | `environment` | `production` | Environment tag applied to all resources |
 | `project_name` | `codeaftermath-lighthouse` | Name prefix for all resources |
-| `container_image` | `codeaftermath:lhci-server:latest` | Docker image pulled by ECS (public Docker Hub image) |
+| `container_image` | `codeaftermath/lhci-server:0.15.1` | Docker image pulled by ECS (public Docker Hub image) |
 | `container_cpu` | `256` | ECS task CPU units (256 = 0.25 vCPU) |
 | `container_memory` | `512` | ECS task memory in MiB |
 | `lhci_admin_api_key` | *(required)* | Admin API key stored in SSM Parameter Store |
