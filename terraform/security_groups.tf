@@ -5,6 +5,10 @@ resource "aws_security_group" "alb" {
   description = "Allow inbound HTTP/HTTPS traffic to the ALB."
   vpc_id      = aws_vpc.main.id
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   ingress {
     description = "HTTP from anywhere"
     from_port   = 80
@@ -41,6 +45,10 @@ resource "aws_security_group" "ecs" {
   name        = "${var.project_name}-ecs-sg"
   description = "Allow inbound traffic from the ALB to ECS tasks."
   vpc_id      = aws_vpc.main.id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   ingress {
     description     = "LHCI server port from ALB"
@@ -80,6 +88,10 @@ resource "aws_security_group" "efs" {
   name        = "${var.project_name}-efs-sg"
   description = "Allow NFS traffic from ECS tasks to EFS."
   vpc_id      = aws_vpc.main.id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   ingress {
     description     = "NFS from ECS tasks"
