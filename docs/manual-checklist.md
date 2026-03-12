@@ -190,7 +190,7 @@ terraform output lighthouse_server_url
 
 ```bash
 curl http://<alb-dns-name>/version
-# {"version":"0.13.x"}
+# {"version":"0.15.1"}
 ```
 
 - [ ] Server returns a valid version response
