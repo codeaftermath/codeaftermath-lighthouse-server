@@ -4,7 +4,7 @@ FROM node:24-alpine
 RUN apk add --no-cache tini
 
 # Install Lighthouse CI server + CLI (provides the `lhci` command) and sqlite bindings.
-RUN npm install -g @lhci/server@0.15.1 @lhci/cli@0.15.1 sqlite3 && \
+RUN npm install -g @lhci/server@0.15.1 @lhci/cli@0.15.1 sqlite3@5.1.7 && \
     npm cache clean --force
 
 # Create a dedicated non-root runtime user.
