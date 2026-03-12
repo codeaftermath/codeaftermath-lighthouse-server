@@ -5,9 +5,9 @@ aws_region   = "us-west-1"
 environment  = "production"
 project_name = "codeaftermath-lighthouse"
 
-# The ECS task pulls the official public LHCI server image from Docker Hub by
-# default. Override here only if you want to use a different image.
-# container_image = "patrickhulce/lhci-server:0.13.0"
+# By default, the ECS task pulls this project's LHCI server image from Docker Hub.
+# Override container_image here only if you want to use a different image.
+# container_image = "codeaftermath/lhci-server:0.15.1"
 
 # Admin API key for the LHCI server (20+ character string).
 lhci_admin_api_key = "REPLACE_WITH_STRONG_SECRET"

@@ -9,7 +9,7 @@ services:
       - LHCI_NO_WARNINGS=1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9001/v1/version"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:9001/version"]
       interval: 30s
       timeout: 5s
       retries: 3

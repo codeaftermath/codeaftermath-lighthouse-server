@@ -25,8 +25,8 @@ running on AWS ECS Fargate.
 
 ```bash
 SERVER_URL=$(cd terraform && terraform output -raw lighthouse_server_url)
-curl -s "$SERVER_URL/v1/version"
-# {"version":"0.13.x"}
+curl -s "$SERVER_URL/version"
+# {"version":"0.15.1"}
 ```
 
 ### Via AWS CLI
