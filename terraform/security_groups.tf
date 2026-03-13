@@ -1,25 +1,4 @@
 # ── ALB Security Groups ────────────────────────────────────────────────────────
-resource "aws_security_group" "alb_dummy" {
-  name        = "alb-dummy-sg"
-  description = "Placeholder SG for ALB to enable removal of target SG; blocks all traffic"
-  vpc_id      = aws_vpc.main.id
-
-  # No inbound rules (nothing allowed)
-  ingress = []
-
-  # Block all outbound traffic by specifying localhost as the only destination
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["127.0.0.1/32"]
-    description = "Block outbound traffic"
-  }
-
-  tags = {
-    Purpose = "Dummy placeholder for ALB SG rotation"
-  }
-}
 
 resource "aws_security_group" "alb_http" {
   name        = "${var.project_name}-alb-http-sg"
