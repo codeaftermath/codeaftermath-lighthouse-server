@@ -431,3 +431,14 @@ aws iam attach-user-policy \
 See [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json) for the full policy.
 
 - [ ] Switched from managed policies to the least-privilege inline policy
+
+---
+
+## Part 4 — Decommissioning (When Needed)
+
+If you need to fully remove this infrastructure later, follow:
+
+- [docs/teardown.md](teardown.md)
+
+This runbook covers main stack destroy, optional ACM bootstrap destroy, and
+bootstrap backend cleanup (including resources protected by deletion guards).

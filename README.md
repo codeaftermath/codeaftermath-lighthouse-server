@@ -29,6 +29,7 @@ automated via **GitHub Actions**.
   - [Outputs](#outputs)
 - [GitHub Actions Workflows](#github-actions-workflows)
 - [Connecting a New Project](#connecting-a-new-project)
+- [Tearing Down Infrastructure](#tearing-down-infrastructure)
 - [Further Reading](#further-reading)
 
 ---
@@ -222,6 +223,9 @@ terraform apply -var="lhci_admin_api_key=<key>"
 terraform destroy -var="lhci_admin_api_key=<key>"
 ```
 
+For full teardown across all stacks (including ALB deletion protection and
+bootstrap resources), use [docs/teardown.md](docs/teardown.md).
+
 Copy `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` for
 a more ergonomic workflow. The file is excluded from version control by
 `.gitignore`.
@@ -252,6 +256,7 @@ dedicated stack in `terraform/bootstrap/acm` and then set
 | `ecs_cluster_name` | Name of the ECS cluster |
 | `ecs_service_name` | Name of the ECS service |
 | `alb_dns_name` | Raw ALB DNS name |
+| `target_group_arn` | ALB target group ARN for ECS service health checks |
 
 ---
 
@@ -288,11 +293,21 @@ guide, including:
 
 ---
 
+## Tearing Down Infrastructure
+
+Use the dedicated teardown runbook for a full, safe sequence (main stack,
+optional ACM stack, then bootstrap state backend):
+
+- [docs/teardown.md](docs/teardown.md)
+
+---
+
 ## Further Reading
 
 - [docs/manual-checklist.md](docs/manual-checklist.md) — **Complete checklist of every task you must do manually**
 - [docs/operations.md](docs/operations.md) — Server management, log access,
   key rotation, scaling, and backup procedures
+- [docs/teardown.md](docs/teardown.md) — Full teardown and cleanup procedure
 - [Lighthouse CI documentation](https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/getting-started.md)
 - [LHCI server configuration reference](https://github.com/GoogleChrome/lighthouse-ci/blob/main/docs/server.md)
 - [Terraform AWS provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
