@@ -24,7 +24,7 @@ running on AWS ECS Fargate.
 ### Via the ALB health check URL
 
 ```bash
-SERVER_URL=$(cd terraform && terraform output -raw lighthouse_server_url)
+SERVER_URL=$(cd ../terraform && terraform output -raw lighthouse_server_url)
 curl -s "$SERVER_URL/version"
 # {"version":"0.15.1"}
 ```
@@ -41,7 +41,7 @@ aws ecs describe-services \
 
 # Check target group health
 aws elbv2 describe-target-health \
-  --target-group-arn $(cd terraform && terraform output -raw target_group_arn) \
+  --target-group-arn $(cd ../terraform && terraform output -raw target_group_arn) \
   --region us-west-1
 ```
 
@@ -57,7 +57,7 @@ lhci healthcheck \
 
 ## 2. Redeploying the Server
 
-The deploy workflow (`deploy.yml`) runs automatically on every push to `main`.
+The deploy workflow (`lighthouse-deploy.yml`) runs automatically on every push to `main`.
 To trigger a manual redeploy:
 
 1. Go to **Actions → Deploy Lighthouse Server** in this repository.
@@ -66,7 +66,7 @@ To trigger a manual redeploy:
 Or, from the command line:
 
 ```bash
-gh workflow run deploy.yml --ref main
+gh workflow run lighthouse-deploy.yml --ref main
 ```
 
 ### Force a fresh ECS deployment (without a code change)
@@ -84,7 +84,7 @@ aws ecs update-service \
 ## 3. Scaling the Service
 
 The ECS service runs a single task by default. Change `desired_count` in
-`terraform/ecs.tf` to increase capacity:
+`../terraform/ecs.tf` to increase capacity:
 
 ```hcl
 resource "aws_ecs_service" "lighthouse" {
@@ -96,7 +96,7 @@ resource "aws_ecs_service" "lighthouse" {
 Then apply:
 
 ```bash
-cd terraform
+cd ../terraform
 terraform apply -var="lhci_admin_api_key=<key>"
 ```
 

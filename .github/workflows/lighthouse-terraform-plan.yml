@@ -1,12 +1,13 @@
-name: Terraform Plan
+name: Terraform Plan for LHCI-Server
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - "terraform/**"
-      - "Dockerfile"
+      - "lighthouse/terraform/**"
+      - "lighthouse/docker/**"
+      - "lighthouse/docs/**"
       - ".github/workflows/**"
 
 concurrency:
@@ -14,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TF_WORKING_DIR: terraform
+  TF_WORKING_DIR: lighthouse/terraform
 
 jobs:
   plan:
