@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TF_WORKING_DIR: terraform
+  TF_WORKING_DIR: lighthouse/terraform
 
 jobs:
   # ── Deploy full infrastructure via Terraform ────────────────────────────────

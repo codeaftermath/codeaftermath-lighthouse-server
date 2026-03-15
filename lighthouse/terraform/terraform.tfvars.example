@@ -23,3 +23,7 @@ lhci_admin_api_key = "REPLACE_WITH_STRONG_SECRET"
 # environment where interruptions are unacceptable). Default: true (FARGATE_SPOT
 # preferred with FARGATE as fallback — ~70% cheaper for a CI tool).
 # use_spot = true
+
+# Keep ALB deletion protection enabled by default. Set to false only for
+# intentional teardown workflows.
+# enable_deletion_protection = true

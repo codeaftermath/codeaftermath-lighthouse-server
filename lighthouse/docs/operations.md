@@ -24,7 +24,7 @@ running on AWS ECS Fargate.
 ### Via the ALB health check URL
 
 ```bash
-SERVER_URL=$(cd terraform && terraform output -raw lighthouse_server_url)
+SERVER_URL=$(cd ../terraform && terraform output -raw lighthouse_server_url)
 curl -s "$SERVER_URL/version"
 # {"version":"0.15.1"}
 ```
@@ -41,7 +41,7 @@ aws ecs describe-services \
 
 # Check target group health
 aws elbv2 describe-target-health \
-  --target-group-arn $(cd terraform && terraform output -raw alb_dns_name) \
+  --target-group-arn $(cd ../terraform && terraform output -raw target_group_arn) \
   --region us-west-1
 ```
 
@@ -57,7 +57,7 @@ lhci healthcheck \
 
 ## 2. Redeploying the Server
 
-The deploy workflow (`deploy.yml`) runs automatically on every push to `main`.
+The deploy workflow (`lighthouse-deploy.yml`) runs automatically on every push to `main`.
 To trigger a manual redeploy:
 
 1. Go to **Actions → Deploy Lighthouse Server** in this repository.
@@ -66,7 +66,7 @@ To trigger a manual redeploy:
 Or, from the command line:
 
 ```bash
-gh workflow run deploy.yml --ref main
+gh workflow run lighthouse-deploy.yml --ref main
 ```
 
 ### Force a fresh ECS deployment (without a code change)
@@ -84,7 +84,7 @@ aws ecs update-service \
 ## 3. Scaling the Service
 
 The ECS service runs a single task by default. Change `desired_count` in
-`terraform/ecs.tf` to increase capacity:
+`../terraform/ecs.tf` to increase capacity:
 
 ```hcl
 resource "aws_ecs_service" "lighthouse" {
@@ -96,7 +96,7 @@ resource "aws_ecs_service" "lighthouse" {
 Then apply:
 
 ```bash
-cd terraform
+cd ../terraform
 terraform apply -var="lhci_admin_api_key=<key>"
 ```
 
@@ -143,7 +143,7 @@ aws logs filter-log-events \
 ```bash
 aws logs filter-log-events \
   --log-group-name /ecs/codeaftermath-lighthouse \
-  --start-time $(date -d '1 hour ago' +%s)000 \
+  --start-time $(($(date +%s)-3600))000 \
   --end-time $(date +%s)000 \
   --region us-west-1
 ```
@@ -334,19 +334,8 @@ npm view @lhci/server versions --json | jq -r '.[-5:]'
 
 ## 9. Destroying the Infrastructure
 
-> ⚠️ This permanently deletes all data. Make a backup first.
+Use the dedicated teardown runbook for a full and safe destroy sequence,
+including ALB deletion protection, optional ACM bootstrap state, and
+bootstrap state bucket cleanup:
 
-```bash
-cd terraform
-
-terraform destroy -var="lhci_admin_api_key=<key>"
-```
-
-The bootstrap resource (S3 state bucket) is protected
-by `lifecycle { prevent_destroy = true }`. To remove it, first remove that
-lifecycle block in `terraform/bootstrap/main.tf`, then:
-
-```bash
-cd terraform/bootstrap
-terraform destroy
-```
+- [docs/teardown.md](teardown.md)

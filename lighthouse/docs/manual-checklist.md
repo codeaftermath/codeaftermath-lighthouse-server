@@ -48,7 +48,7 @@ fastest way to get everything working.
 
 #### Option B — Least-privilege inline policy (recommended for production)
 
-The file [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json)
+The file [`../terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json)
 contains a single JSON policy with exactly the IAM actions required to run
 `terraform apply` (bootstrap + main). No service has more access than it needs.
 
@@ -58,7 +58,7 @@ contains a single JSON policy with exactly the IAM actions required to run
 # 1. Create the policy in your AWS account
 aws iam create-policy \
   --policy-name codeaftermath-lighthouse-github-actions \
-  --policy-document file://terraform/iam-policy-github-actions.json \
+  --policy-document file://../terraform/iam-policy-github-actions.json \
   --region us-west-1
 
 # 2. Attach it to the IAM user (replace <account-id>)
@@ -71,7 +71,7 @@ Or attach it in the IAM console:
 1. Go to **IAM → Users → github-actions-lighthouse → Add permissions**.
 2. Choose **Attach policies directly → Create policy**.
 3. Switch to the **JSON** tab, paste the contents of
-   `terraform/iam-policy-github-actions.json`, and save.
+  `../terraform/iam-policy-github-actions.json`, and save.
 4. Attach the new policy to the user.
 
 **Key security decisions made in the policy:**
@@ -100,7 +100,7 @@ with the IAM credentials above configured in your shell:
 aws configure   # or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
 
 # Bootstrap the remote state resources
-cd terraform/bootstrap
+cd ../terraform/bootstrap
 terraform init
 terraform apply   # type 'yes' when prompted
 ```
@@ -144,7 +144,7 @@ and add the following **repository secrets**:
 
 ### 1.5 — Create the `production` GitHub Actions environment
 
-The `deploy` job in `deploy.yml` is gated on an Actions environment called
+The `deploy` job in `lighthouse-deploy.yml` is gated on an Actions environment called
 `production`. Without it the deploy job will still run, but creating it lets
 you add required reviewers, wait timers, or branch protection rules.
 
@@ -181,7 +181,7 @@ Print server URL**.
 
 **From the command line:**
 ```bash
-cd terraform
+cd ../terraform
 terraform output lighthouse_server_url
 # https://codeaftermath-lighthouse-alb-xxxx.us-west-1.elb.amazonaws.com
 ```
@@ -365,7 +365,7 @@ HTTPS and HTTP → HTTPS redirect are already configured in Terraform. If you
 want Terraform to request/manage your ACM certificate and you use external DNS
 (for example Cloudflare), use the manual DNS validation flow:
 
-1. Run the one-time ACM stack in `terraform/bootstrap/acm` and capture
+1. Run the one-time ACM stack in `../terraform/bootstrap/acm` and capture
    `acm_dns_validation_records` output.
 2. Create those CNAME records in your DNS provider.
 3. Wait for ACM certificate status to become `ISSUED` in `us-west-1`.
@@ -421,13 +421,24 @@ is working:
 # Detach the broad managed policies one by one, then attach the scoped policy:
 aws iam create-policy \
   --policy-name codeaftermath-lighthouse-github-actions \
-  --policy-document file://terraform/iam-policy-github-actions.json
+  --policy-document file://../terraform/iam-policy-github-actions.json
 
 aws iam attach-user-policy \
   --user-name github-actions-lighthouse \
   --policy-arn arn:aws:iam::<account-id>:policy/codeaftermath-lighthouse-github-actions
 ```
 
-See [`terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json) for the full policy.
+See [`../terraform/iam-policy-github-actions.json`](../terraform/iam-policy-github-actions.json) for the full policy.
 
 - [ ] Switched from managed policies to the least-privilege inline policy
+
+---
+
+## Part 4 — Decommissioning (When Needed)
+
+If you need to fully remove this infrastructure later, follow:
+
+- [docs/teardown.md](teardown.md)
+
+This runbook covers main stack destroy, optional ACM bootstrap destroy, and
+bootstrap backend cleanup (including resources protected by deletion guards).
