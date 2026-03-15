@@ -10,8 +10,8 @@ resource "aws_lb" "main" {
   ]
   subnets = aws_subnet.public[*].id
 
-  # Prevent accidental deletion; disable before running terraform destroy.
-  enable_deletion_protection = true
+  # Protected by default; override with enable_deletion_protection=false for teardown.
+  enable_deletion_protection = var.enable_deletion_protection
 
   # Drop requests that contain invalid HTTP header fields (prevents header injection).
   drop_invalid_header_fields = true

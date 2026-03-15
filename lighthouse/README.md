@@ -243,6 +243,7 @@ a more ergonomic workflow. The file is excluded from version control by
 | `container_memory` | `512` | ECS task memory in MiB |
 | `lhci_admin_api_key` | *(required)* | Admin API key stored in SSM Parameter Store |
 | `use_spot` | `true` | Use FARGATE_SPOT (preferred, ~70% cheaper) with FARGATE as fallback |
+| `enable_deletion_protection` | `true` | Enables ALB deletion protection; set to `false` only for intentional teardown |
 
 For one-time ACM certificate request and manual DNS validation, run the
 dedicated stack in `terraform/bootstrap/acm` and then set
@@ -266,6 +267,7 @@ dedicated stack in `terraform/bootstrap/acm` and then set
 |---|---|---|
 | [`lighthouse-deploy.yml`](../.github/workflows/lighthouse-deploy.yml) | Push to `main` or manual dispatch | Runs `terraform apply` to provision or update all AWS resources |
 | [`lighthouse-terraform-plan.yml`](../.github/workflows/lighthouse-terraform-plan.yml) | Pull request to `main` (lighthouse paths) | Runs `terraform validate` + `terraform plan`; posts the plan as a PR comment |
+| [`lighthouse-teardown.yml`](../.github/workflows/lighthouse-teardown.yml) | Manual dispatch with confirmation | Disables ALB deletion protection and runs `terraform destroy` |
 
 ### Required GitHub repository configuration
 

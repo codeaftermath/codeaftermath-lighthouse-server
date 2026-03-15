@@ -51,3 +51,9 @@ variable "use_spot" {
   type        = bool
   default     = true
 }
+
+variable "enable_deletion_protection" {
+  description = "Enable ALB deletion protection. Keep this true by default to avoid accidental destroys."
+  type        = bool
+  default     = true
+}

@@ -21,27 +21,26 @@ This runbook covers:
 
 ## 1. Disable ALB deletion protection
 
-The ALB has deletion protection enabled by default in ../terraform/alb.tf, so
-terraform destroy will fail until this is disabled.
+The ALB has deletion protection enabled by default using the
+`enable_deletion_protection` Terraform variable. Keep it enabled by default,
+and only disable it for intentional teardown.
 
-1. Edit ../terraform/alb.tf and set:
-
-```hcl
-enable_deletion_protection = false
-```
-
-2. Apply this change first:
+1. Apply with deletion protection disabled:
 
 ```bash
 cd ../terraform
-terraform apply -var="lhci_admin_api_key=<key>"
+terraform apply \
+  -var="lhci_admin_api_key=<key>" \
+  -var="enable_deletion_protection=false"
 ```
 
 ## 2. Destroy the main stack
 
 ```bash
 cd ../terraform
-terraform destroy -var="lhci_admin_api_key=<key>"
+terraform destroy \
+  -var="lhci_admin_api_key=<key>" \
+  -var="enable_deletion_protection=false"
 ```
 
 Expected result: VPC, ALB, ECS, EFS, IAM roles/policies, logs, and related
@@ -90,6 +89,12 @@ find ../terraform -type f -name ".terraform.lock.hcl" -print
 
 ## 6. Troubleshooting
 
+### Use GitHub teardown workflow
+
+You can also run teardown via GitHub Actions using
+`lighthouse-teardown.yml` and entering confirmation value
+`DESTROY_LIGHTHOUSE`.
+
 ### State lock stuck
 
 Use lock ID from error output:
@@ -100,7 +105,7 @@ terraform force-unlock <LOCK_ID>
 
 ### Destroy still fails due to protection
 
-1. Re-check enable_deletion_protection in ../terraform/alb.tf is false and applied.
+1. Re-check `enable_deletion_protection=false` was applied before destroy.
 2. Re-check prevent_destroy was removed in ../terraform/bootstrap/main.tf.
 
 ## Verification checklist
